@@ -19,6 +19,8 @@ export default function Page() {
   const endpoint = "user";
   const authorization = "Bearer 3|uI7zw1mYimbDXouVu7P6g8RHYi4vjU4udR2PLCSc21483a17";
 
+  const userColumn = ["No.", "Fullname", "Username", "Email", "Phone", "Date of Birth", "Gender", "Status", "Block Status", "Created Date"];
+
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -78,7 +80,7 @@ export default function Page() {
             <div className='w-full mb-5'>
               <AddUserDialog />
             </div>
-            <TableDemo datas={users} loading={loading} />
+            <TableDemo datas={users} column={userColumn} loading={loading} />
           </div>
         </div>
       </SidebarInset>

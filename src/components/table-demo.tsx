@@ -1,10 +1,10 @@
 import { Table, TableBody, TableCaption, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useMemo } from "react";
 
-export function TableDemo({ datas, loading = false }) {
+export function TableDemo({ datas, column, loading = false }) {
   const tableContent = useMemo(() => {
-    if (loading) return <LoadingRow colSpan={8} />;
-    if (!datas?.length) return <NoDataRow colSpan={8} />;
+    if (loading) return <LoadingRow colSpan={10} />;
+    if (!datas?.length) return <NoDataRow colSpan={10} />;
 
     return datas.map((data, index) => <UserRow key={data.id} data={data} index={index} />);
   }, [datas, loading]);
@@ -14,14 +14,9 @@ export function TableDemo({ datas, loading = false }) {
       <TableCaption>A list of your recent users.</TableCaption>
       <TableHeader>
         <TableRow>
-          <TableHead className='w-[100px]'>No.</TableHead>
-          <TableHead>Fullname</TableHead>
-          <TableHead>Phone</TableHead>
-          <TableHead>Date of Birth</TableHead>
-          <TableHead>Gender</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead>Block Status</TableHead>
-          <TableHead>Created Date</TableHead>
+          {column.map((header, i) => (
+            <TableHead key={i}>{header}</TableHead>
+          ))}
         </TableRow>
       </TableHeader>
       <TableBody>{tableContent}</TableBody>
@@ -67,23 +62,22 @@ function UserRow({ data, index }) {
   return (
     <TableRow>
       <TableCell className='font-medium'>{index + 1}</TableCell>
-      <TableCell>{data.fullname}</TableCell>
-      <TableCell>{data.phone}</TableCell>
-      <TableCell>{data.date_of_birth}</TableCell>
-      <TableCell>{data.gender}</TableCell>
-      <TableCell>{filterStatus(data.is_active, "a")}</TableCell>
-      <TableCell>{filterStatus(data.blocked, "b")}</TableCell>
-      <TableCell>{formatDate(data.created_at)}</TableCell>
+      <TableCell>{emptyRowFormat(data.fullname)}</TableCell>
+      <TableCell>{emptyRowFormat(data.user_auth.username)}</TableCell>
+      <TableCell>{emptyRowFormat(data.user_auth.email)}</TableCell>
+      <TableCell>{emptyRowFormat(data.phone)}</TableCell>
+      <TableCell>{emptyRowFormat(data.date_of_birth)}</TableCell>
+      <TableCell>{emptyRowFormat(data.gender)}</TableCell>
+      <TableCell>{emptyRowFormat(filterStatus(data.is_active, "a"))}</TableCell>
+      <TableCell>{emptyRowFormat(filterStatus(data.is_blocked, "b"))}</TableCell>
+      <TableCell>{emptyRowFormat(formatDate(data.created_at))}</TableCell>
     </TableRow>
   );
 }
 
 /** ✅ Helper function untuk memformat status */
 function filterStatus(status, type) {
-  if (status === 1) {
-    return type === "a" ? "Active" : "Blocked";
-  }
-  return "Open";
+  return type === "a" ? (status === 1 ? "Active" : "Inactive") : status === 0 ? "Open" : "Blocked";
 }
 
 /** ✅ Helper function untuk memformat tanggal */
@@ -99,3 +93,5 @@ function formatDate(date) {
     timeZone: "UTC",
   }).format(new Date(date));
 }
+
+const emptyRowFormat = (row: string | null) => row ?? "-";

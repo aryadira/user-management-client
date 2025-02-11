@@ -10,12 +10,18 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, CheckCircle } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
+import { format } from "date-fns";
+import { Calendar as CalendarIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 export function AddUserDialog() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
   const [messageType, setMessageType] = useState("");
+  const [isOpen, setIsOpen] = useState(false); // State untuk mengontrol modal
 
   const base_url = "http://127.0.0.1:8000/api";
   const url = `${base_url}/user`;
@@ -23,7 +29,7 @@ export function AddUserDialog() {
 
   const [fullname, setFullname] = useState("");
   const [phone, setPhone] = useState("");
-  const [date_of_birth, setDob] = useState("");
+  const [date_of_birth, setDob] = useState<Date>();
   const [gender, setGender] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -32,7 +38,9 @@ export function AddUserDialog() {
     setLoading(true);
     setMessage(null);
 
-    const userData = { fullname, phone, date_of_birth, gender, email, password };
+    const formattedDate = date_of_birth ? date_of_birth.toISOString().split("T")[0] : null;
+
+    const userData = { fullname, phone, date_of_birth: formattedDate, gender, email, password };
 
     try {
       const response = await axios.post(url, userData, {
@@ -47,10 +55,11 @@ export function AddUserDialog() {
       setMessage(response.data.message);
       setMessageType("success");
 
+      setTimeout(() => setIsOpen(false), 500);
+
       setTimeout(() => {
-        router.push("/users");
-        router.refresh();
-      }, 2000);
+        window.location.reload();
+      }, 1000);
     } catch (err) {
       setMessage(err.response?.data?.message || "Something went wrong");
       setMessageType("error");
@@ -60,9 +69,11 @@ export function AddUserDialog() {
   };
 
   return (
-    <Dialog>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant='default'>Add User</Button>
+        <Button variant='default' onClick={() => setIsOpen(true)}>
+          Add User
+        </Button>
       </DialogTrigger>
       <DialogContent className='sm:max-w-[425px]'>
         <DialogHeader>
@@ -94,7 +105,19 @@ export function AddUserDialog() {
             <Label htmlFor='date_of_birth' className='text-right'>
               Date of birth
             </Label>
-            <Input type='date' id='date_of_birth' className='col-span-3' onChange={(e) => setDob(e.target.value)} value={date_of_birth} />
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant={"outline"}
+                  className={cn("w-[280px] justify-start text-left font-normal", !date_of_birth && "text-muted-foreground")}>
+                  <CalendarIcon className='mr-2 h-4 w-4' />
+                  {date_of_birth ? format(date_of_birth, "PPP") : <span>Pick your birthday</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className='w-auto p-0'>
+                <Calendar mode='single' selected={date_of_birth} onSelect={setDob} initialFocus />
+              </PopoverContent>
+            </Popover>
           </div>
           <div className='grid grid-cols-4 items-center gap-4'>
             <Label className='text-right'>Gender</Label>
